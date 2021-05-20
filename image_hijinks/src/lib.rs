@@ -17,7 +17,7 @@ pub fn main() -> Result<(), JsValue> {
     let image = generate_image();
     let mut buf = Vec::new();
     image.write_to(&mut buf, image::ImageOutputFormat::Png).unwrap();
-    let base64_string = base64::encode_config(buf, base64::URL_SAFE);
+    let base64_string = base64::encode(buf);
 
     val.set_attribute("src", format!("data:image/png;base64,{}", base64_string).as_str())?;
 
@@ -26,7 +26,6 @@ pub fn main() -> Result<(), JsValue> {
     Ok(())
 }
 
-//This is shamelessly stolen from the docs, I'm not this smart...
 pub fn generate_image() -> image::DynamicImage {
     let imgx = 800;
     let imgy = 800;
