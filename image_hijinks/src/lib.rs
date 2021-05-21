@@ -1,3 +1,5 @@
+use image::DynamicImage;
+use web_sys::Element;
 use image::GenericImage;
 
 use wasm_bindgen::prelude::*;
@@ -10,7 +12,6 @@ pub fn main() -> Result<(), JsValue> {
     let window = web_sys::window().expect("no global `window` exists");
     let document = window.document().expect("should have a document on window");
 
-    // Manufacture the element we're gonna append
     let image_element = document.get_element_by_id("dynamic-image").expect("should have a dynamic-image image");
     let imgx = 800;
     let imgy = 800;
@@ -18,12 +19,17 @@ pub fn main() -> Result<(), JsValue> {
     image_element.set_attribute("height", imgy.to_string().as_str()).expect("Unable to set dynamic image height");
 
     let image = generate_base_image(imgx, imgy);
-    let mut buf = Vec::new();
-    image.write_to(&mut buf, image::ImageOutputFormat::Png).expect("Failed to fill image buffer");
-    let base64_string = base64::encode(buf);
-    image_element.set_attribute("src", format!("data:image/png;base64,{}", base64_string).as_str()).expect("Unable to set dynamic image data");
+
+    write_dynimage_to_img(&image, &image_element);
     
     Ok(())
+}
+
+pub fn write_dynimage_to_img(dynimg: &DynamicImage, img_element: &Element) {
+    let mut buf = Vec::new();
+    dynimg.write_to(&mut buf, image::ImageOutputFormat::Png).expect("Failed to fill image buffer");
+    let base64_string = base64::encode(buf);
+    img_element.set_attribute("src", format!("data:image/png;base64,{}", base64_string).as_str()).expect("Unable to set dynamic image data");
 }
 
 pub fn generate_base_image(imgx: u32, imgy: u32) -> image::DynamicImage {
