@@ -8,28 +8,25 @@ pub fn main() -> Result<(), JsValue> {
     // window object.
     let window = web_sys::window().expect("no global `window` exists");
     let document = window.document().expect("should have a document on window");
-    let body = document.body().expect("document should have a body");
 
     // Manufacture the element we're gonna append
-    let val = document.create_element("img")?;
-    val.set_id("image-holder");
+    let image_element = document.get_element_by_id("dynamic-image").expect("should have a dynamic-image image");
+    let imgx = 800;
+    let imgy = 800;
+    image_element.set_attribute("width", imgx.to_string().as_str()).expect("Unable to set dynamic image width");
+    image_element.set_attribute("height", imgy.to_string().as_str()).expect("Unable to set dynamic image height");
 
-    let image = generate_image();
+    let image = generate_image(imgx, imgy);
     let mut buf = Vec::new();
-    image.write_to(&mut buf, image::ImageOutputFormat::Png).unwrap();
+    image.write_to(&mut buf, image::ImageOutputFormat::Png).expect("Failed to fill image buffer");
     let base64_string = base64::encode(buf);
 
-    val.set_attribute("src", format!("data:image/png;base64,{}", base64_string).as_str())?;
-
-    body.append_child(&val)?;
+    image_element.set_attribute("src", format!("data:image/png;base64,{}", base64_string).as_str()).expect("Unable to set dynamic image data");
 
     Ok(())
 }
 
-pub fn generate_image() -> image::DynamicImage {
-    let imgx = 800;
-    let imgy = 800;
-
+pub fn generate_image(imgx: u32, imgy: u32) -> image::DynamicImage {
     let mut dynimage = image::DynamicImage::new_rgb8(imgx, imgy);
     let mut curx = 1;
     let mut cury = 1;
