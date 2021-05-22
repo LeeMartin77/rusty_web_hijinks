@@ -5,13 +5,25 @@ use image::GenericImage;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+pub struct Point {
+    x: i32,
+    y: i32
+}
+
+#[wasm_bindgen]
+pub struct GameInput {
+    movement: Point
+}
+
+#[wasm_bindgen]
 pub struct GameProperties {
-    running: bool,
     width: u32,
     height: u32,
     player_size: u32,
-    player_position: (u32, u32)
+    player_position: Point
 }
+
+
 
 #[wasm_bindgen(start)]
 pub fn main() -> Result<(), JsValue> {
@@ -22,11 +34,10 @@ pub fn main() -> Result<(), JsValue> {
 #[wasm_bindgen]
 pub fn game_init() -> GameProperties {
     let game = GameProperties {
-        running: true,
         width: 800,
         height: 800,
         player_size: 10,
-        player_position: (50, 50)
+        player_position: Point {x:50, y:50}
     };    
     let image_element = get_dynamic_image_element();
 
@@ -39,13 +50,34 @@ pub fn game_init() -> GameProperties {
     game
 }
 
-
 #[wasm_bindgen]
-pub fn game_loop(game: GameProperties) -> GameProperties {
+pub fn game_loop(game: GameProperties, x: i32, y: i32) -> GameProperties {
+    //"Logic" Step
+    let input = GameInput {
+        movement: Point {
+            x: x,
+            y: y
+        }
+    };
+    let moved_game = move_player(game, input);
+    //"Rendering" Step
     let image_element = get_dynamic_image_element();
-    let process_image = generate_image(&game);
+    let process_image = generate_image(&moved_game);
     write_dynimage_to_img(process_image, &image_element);
-    game
+    moved_game
+}
+
+pub fn move_player(game: GameProperties, input: GameInput) -> GameProperties {
+    let new_position = Point {
+        x: game.player_position.x + input.movement.x,
+        y: game.player_position.y + input.movement.y
+    };
+    GameProperties {
+        height: game.height,
+        width: game.width,
+        player_size: game.player_size,
+        player_position: new_position
+    }
 }
 
 pub fn get_dynamic_image_element() -> Element {
@@ -66,9 +98,9 @@ pub fn generate_image(game: &GameProperties) -> image::DynamicImage {
     let mut dynimage = image::DynamicImage::new_rgb8(game.width, game.height);
     let mut curx = 1;
     let mut cury = 1;
-
-    let img_x_offset = game.player_position.0;
-    let img_y_offset = game.player_position.1;
+    
+    let img_x_offset = game.player_position.x as u32;
+    let img_y_offset = game.player_position.y as u32;
 
     while curx < game.width {
         while cury < game.height {
