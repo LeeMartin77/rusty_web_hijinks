@@ -7,11 +7,14 @@
   <body>
     <img id="dynamic-image">
     <script type="module">
-      import init, {main} from "./pkg/image_hijinks.js";
+      import init, {game_init, game_loop} from "./pkg/image_hijinks.js";
       init()
-        // .then(() => {
-        //   play_game_of_life()
-        // });
+        .then(() => {
+          let game = game_init();  
+          while (game.running) {
+            game = game_loop(game);
+          }
+        });
       </script>
   </body>
 </html>

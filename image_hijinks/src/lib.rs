@@ -4,6 +4,7 @@ use image::GenericImage;
 
 use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 pub struct GameProperties {
     running: bool,
     width: u32,
@@ -13,36 +14,45 @@ pub struct GameProperties {
 }
 
 #[wasm_bindgen(start)]
-pub fn main() {
+pub fn main() -> Result<(), JsValue> {
+    let _image_element = get_dynamic_image_element();
+    Ok(())
+}
 
-    // Use `web_sys`'s global `window` function to get a handle on the global
-    // window object.
-    let window = web_sys::window().expect("no global `window` exists");
-    let document = window.document().expect("should have a document on window");
-
-    let image_element = document.get_element_by_id("dynamic-image").expect("should have a dynamic-image image");
-    let mut game = GameProperties {
+#[wasm_bindgen]
+pub fn game_init() -> GameProperties {
+    let game = GameProperties {
         running: true,
         width: 800,
         height: 800,
         player_size: 10,
         player_position: (50, 50)
-    };
+    };    
+    let image_element = get_dynamic_image_element();
+
     image_element.set_attribute("width", game.width.to_string().as_str()).expect("Unable to set dynamic image width");
     image_element.set_attribute("height", game.height.to_string().as_str()).expect("Unable to set dynamic image height");
 
     let image = generate_image(&game);
 
     write_dynimage_to_img(image, &image_element);
-    while game.running {
-        game = game_loop(game);
-        let process_image = generate_image(&game);
-        write_dynimage_to_img(process_image, &image_element);
-    }
+    game
 }
 
-pub fn game_loop(mut game: GameProperties) -> GameProperties {
+
+#[wasm_bindgen]
+pub fn game_loop(game: GameProperties) -> GameProperties {
+    let image_element = get_dynamic_image_element();
+    let process_image = generate_image(&game);
+    write_dynimage_to_img(process_image, &image_element);
     game
+}
+
+pub fn get_dynamic_image_element() -> Element {
+    let window = web_sys::window().expect("no global `window` exists");
+    let document = window.document().expect("should have a document on window");
+
+    document.get_element_by_id("dynamic-image").expect("should have a dynamic-image image")
 }
 
 pub fn write_dynimage_to_img(dynimg: DynamicImage, img_element: &Element) {
