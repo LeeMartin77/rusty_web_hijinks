@@ -1,3 +1,6 @@
+use image::GenericImage;
+use image::GenericImageView;
+use image::Pixel;
 use image::DynamicImage;
 use web_sys::Element;
 
@@ -19,6 +22,7 @@ pub struct GraphValue {
 
 static IMG_WIDTH: u32 = 800;
 static IMG_HEIGHT: u32 = 800;
+static BORDER_WIDTH: u32 = 25;
 
 #[wasm_bindgen(start)]
 pub fn main() -> Result<(), JsValue> {
@@ -56,6 +60,28 @@ pub fn write_dynimage_to_img(dynimg: DynamicImage, img_element: &Element) {
 
 pub fn generate_graph_image(values: GraphData) -> image::DynamicImage {
     let mut dynimage = image::DynamicImage::new_rgb8(IMG_WIDTH, IMG_HEIGHT);
-
+    dynimage = fill_background_colour(dynimage);
+    dynimage = draw_axes(dynimage, BORDER_WIDTH);
     return dynimage;
+}
+
+pub fn fill_background_colour(mut dynimage: image::DynamicImage) -> image::DynamicImage {
+    let background_color = image::Rgba([255, 255, 255, 255]);
+    for x in 0..dynimage.width() {
+        for y in 0..dynimage.height() {
+            dynimage.put_pixel(x, y, background_color);
+        }
+    }
+    dynimage
+}
+
+pub fn draw_axes(mut dynimage: image::DynamicImage, border: u32) -> image::DynamicImage {
+    let axes_colour = image::Rgba([0, 0, 0, 255]);
+    for x in border..(dynimage.width() - border){
+        dynimage.put_pixel(x, dynimage.height()-border, axes_colour);
+    }
+    for y in border..(dynimage.width() - border){
+        dynimage.put_pixel(border, y, axes_colour);
+    }
+    dynimage
 }
