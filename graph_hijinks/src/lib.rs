@@ -1,6 +1,5 @@
 use image::GenericImage;
 use image::GenericImageView;
-use image::Pixel;
 use image::DynamicImage;
 use web_sys::Element;
 
@@ -16,8 +15,8 @@ pub struct GraphData {
 
 #[derive(Serialize, Deserialize)]
 pub struct GraphValue {
-    x: i32,
-    y: i32
+    x: u32,
+    y: u32
 }
 
 static IMG_WIDTH: u32 = 800;
@@ -62,6 +61,7 @@ pub fn generate_graph_image(values: GraphData) -> image::DynamicImage {
     let mut dynimage = image::DynamicImage::new_rgb8(IMG_WIDTH, IMG_HEIGHT);
     dynimage = fill_background_colour(dynimage);
     dynimage = draw_axes(dynimage, BORDER_WIDTH);
+    dynimage = draw_dots(dynimage, BORDER_WIDTH, values);
     return dynimage;
 }
 
@@ -82,6 +82,25 @@ pub fn draw_axes(mut dynimage: image::DynamicImage, border: u32) -> image::Dynam
     }
     for y in border..(dynimage.width() - border){
         dynimage.put_pixel(border, y, axes_colour);
+    }
+    dynimage
+}
+
+pub fn draw_dots(mut dynimage: image::DynamicImage, border: u32, values: GraphData) -> image::DynamicImage {
+    let dot_colour = image::Rgba([0, 0, 255, 255]);
+    let dot_expansion = 2; 
+    let max_x = values.values.iter().map(|val| val.x).max().unwrap();
+    let max_y = values.values.iter().map(|val| val.y).max().unwrap();
+    let x_division = (dynimage.width() - border * 2) / max_x;
+    let y_division = (dynimage.height() - border * 2) / max_y;
+    for point in values.values {
+        let x_center = (x_division * point.x) + border;
+        let y_center = dynimage.height() - (y_division * point.y) - border;
+        for x in (x_center - dot_expansion)..(x_center + dot_expansion) {
+            for y in (y_center - dot_expansion)..(y_center + dot_expansion) {
+                dynimage.put_pixel(x, y, dot_colour);
+            } 
+        } 
     }
     dynimage
 }
